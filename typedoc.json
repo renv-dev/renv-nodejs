@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src/index.ts", "src/types/index.ts"],
+  "out": "docs",
+  "name": "@renv/node",
+  "includeVersion": true,
+  "exclude": ["**/node_modules/**", "**/dist/**"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "readme": "README.md",
+  "theme": "default"
+}
