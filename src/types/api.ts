@@ -1,35 +1,42 @@
 import { Scopes } from './';
 
-type APIConfigResponse = {
+type APIResponseBase<T> = {
     success: boolean;
     message: string;
-    data: {
-        token: {
-            id:        string;
-            userId:    string;
-            token:     string;
-            projectId: string;
-            expiredAt: string;
-            scopes:    Scopes[];
-            createdAt: string;
-            updatedAt: string;
-        }
-    }
+    data: T;
 }
 
-type APIBranchesResponse = {
-    success: boolean;
-    message: string;
-    data: {
-        branches: Array<{
-            id:        string;
-            name:      string;
-            projectId: string;
-            isMain:    boolean;
-            createdAt: string;
-            updatedAt: string;
-        }>;
+type APIConfigResponse = APIResponseBase<{
+    token: {
+        id:         string;
+        userId:     string;
+        token:      string;
+        projectId:  string;
+        expiredAt:  string;
+        scopes:     Scopes[];
+        createdAt:  string;
+        updatedAt:  string;
     }
-}
+}>;
 
-export { APIConfigResponse, APIBranchesResponse };
+type APIBranchesResponse = APIResponseBase<{
+    branches: Array<{
+        id:         string;
+        name:       string;
+        projectId:  string;
+        isMain:     boolean;
+        createdAt:  string;
+        updatedAt:  string;
+    }>;
+}>;
+
+type APIVariablesResponse = APIResponseBase<Array<{
+    id:         string;
+    key:        string;
+    value:      string;
+    branchId:   string;
+    createdAt:  string;
+    updatedAt:  string;
+}>>;
+
+export { APIConfigResponse, APIBranchesResponse, APIVariablesResponse };
