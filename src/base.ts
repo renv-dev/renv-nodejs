@@ -1,4 +1,4 @@
-import { RenvClient, Branch, Scopes, APIConfigResponse, APIBranchesResponse } from './types';
+import { RenvClient, Branch, Scopes, APIConfigResponse, APIBranchesResponse, APIVariablesResponse } from './types';
 
 const BASE_ENDPOINT = 'https://renv-web.vercel.app/api';
 
@@ -44,6 +44,22 @@ class Renv implements RenvClient {
         return branches.json();
     }
 
+    private async variables(): Promise<APIVariablesResponse> {
+        if (!this.projectId) {
+            throw new Error('Project ID is not set. Please load the configuration first.');
+        }
+        const varsResponse = await fetch(`${BASE_ENDPOINT}/projects/${this.projectId}/branches/${this.branch}/envs`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${this.token}`,
+            }
+        });
+        if (!varsResponse.ok) {
+            throw new Error(`Failed to load variables: ${varsResponse.statusText}`);
+        }
+        return varsResponse.json();
+    }
+
     async load(branch: string = 'main'): Promise<void> {
         const config = await this.config();
         const tokenData = config.data.token;
@@ -59,6 +75,22 @@ class Renv implements RenvClient {
 
         this.branch = branches.data.branches[0].id;
         if (this.logEnabled) console.log(`Loaded configuration for branch "${branch}" (ID: ${this.branch})`);
+
+        const vars = await this.variables();
+        this.data = vars.data.map(({ key, value }) => ({ key, value })).reduce((acc, { key, value }) => {
+            acc[key] = value;
+            return acc;
+        }, {} as Record<string, string>);
+
+        if (this.logEnabled) console.log(`Loaded ${Object.keys(this.data).length} environment variables.`);
+    }
+
+    get(key: string): string | undefined {
+        return this.data[key];
+    }
+    
+    getAll(): Record<string, string> {
+        return this.data;
     }
 }
 
