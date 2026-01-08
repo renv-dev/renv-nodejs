@@ -7,5 +7,5 @@ console.log(`Using TOKEN: ${TOKEN}`);
 
 (async () => {
     const client = new Renv(TOKEN, true);
-    await client.load();
+    await client.load("development");
 })();

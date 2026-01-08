@@ -38,6 +38,21 @@ class Renv {
         }
         return branches.json();
     }
+    async variables() {
+        if (!this.projectId) {
+            throw new Error('Project ID is not set. Please load the configuration first.');
+        }
+        const varsResponse = await fetch(`${BASE_ENDPOINT}/projects/${this.projectId}/branches/${this.branch}/envs`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${this.token}`,
+            }
+        });
+        if (!varsResponse.ok) {
+            throw new Error(`Failed to load variables: ${varsResponse.statusText}`);
+        }
+        return varsResponse.json();
+    }
     async load(branch = 'main') {
         const config = await this.config();
         const tokenData = config.data.token;
@@ -53,6 +68,19 @@ class Renv {
         this.branch = branches.data.branches[0].id;
         if (this.logEnabled)
             console.log(`Loaded configuration for branch "${branch}" (ID: ${this.branch})`);
+        const vars = await this.variables();
+        this.data = vars.data.map(({ key, value }) => ({ key, value })).reduce((acc, { key, value }) => {
+            acc[key] = value;
+            return acc;
+        }, {});
+        if (this.logEnabled)
+            console.log(`Loaded ${Object.keys(this.data).length} environment variables.`);
+    }
+    get(key) {
+        return this.data[key];
+    }
+    getAll() {
+        return this.data;
     }
 }
 exports.Renv = Renv;

@@ -9,7 +9,10 @@ declare class Renv implements RenvClient {
     constructor(token: string, logEnabled?: boolean);
     private config;
     private branches;
+    private variables;
     load(branch?: string): Promise<void>;
+    get(key: string): string | undefined;
+    getAll(): Record<string, string>;
 }
 export { Renv };
 //# sourceMappingURL=base.d.ts.map
