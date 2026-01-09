@@ -3,13 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Renv = void 0;
 const BASE_ENDPOINT = 'https://renv-web.vercel.app/api';
 class Renv {
-    constructor(token, logEnabled = false) {
+    constructor(token, config) {
         this.logEnabled = true;
+        this.isProduct = false;
         this.branch = 'main';
-        this.scopes = [];
         this.data = {};
         this.token = token;
-        this.logEnabled = logEnabled;
+        this.logEnabled = config?.logEnabled ?? true;
+        this.isProduct = config?.isProduct ?? false;
     }
     async config() {
         const config = await fetch(`${BASE_ENDPOINT}/keys`, {
@@ -54,10 +55,15 @@ class Renv {
         return varsResponse.json();
     }
     async load(branch = 'main') {
+        if (this.isProduct) {
+            if (this.logEnabled)
+                console.log('Running in production mode. Skipping loading of environment variables from api.');
+            this.data = process.env;
+            return;
+        }
         const config = await this.config();
         const tokenData = config.data.token;
         this.projectId = tokenData.projectId;
-        this.scopes = tokenData.scopes;
         const branches = await this.branches(branch);
         if (branches.data.branches.length === 0) {
             throw new Error(`Branch "${branch}" not found.`);

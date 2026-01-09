@@ -1,18 +1,24 @@
-import { RenvClient, Branch, Scopes, APIConfigResponse, APIBranchesResponse, APIVariablesResponse } from './types';
-
+import { RenvClient, Branch, APIConfigResponse, APIBranchesResponse, APIVariablesResponse } from './types';
 const BASE_ENDPOINT = 'https://renv-web.vercel.app/api';
+
+type Constructor = {
+    logEnabled?: boolean;
+    isProduct?: boolean;
+    baseUrl?: string;
+}
 
 class Renv implements RenvClient {
     private readonly token: string;
     private readonly logEnabled: boolean = true;
+    private readonly isProduct: boolean = false;
     private projectId?: string;
     private branch: Branch = 'main';
-    private scopes: Scopes[] = [];
     private data: Record<string, string> = {};
 
-    constructor(token: string, logEnabled: boolean = false) {
+    constructor(token: string, config?: Constructor) {
         this.token = token;
-        this.logEnabled = logEnabled;
+        this.logEnabled = config?.logEnabled ?? true;
+        this.isProduct = config?.isProduct ?? false;
     }
 
     private async config(): Promise<APIConfigResponse> {
@@ -61,10 +67,14 @@ class Renv implements RenvClient {
     }
 
     async load(branch: string = 'main'): Promise<void> {
+        if (this.isProduct) {
+            if (this.logEnabled) console.log('Running in production mode. Skipping loading of environment variables from api.');
+            this.data = process.env as Record<string, string>;
+            return;
+        }
         const config = await this.config();
         const tokenData = config.data.token;
         this.projectId = tokenData.projectId;
-        this.scopes = tokenData.scopes;
 
         const branches = await this.branches(branch);
         if (branches.data.branches.length === 0) {

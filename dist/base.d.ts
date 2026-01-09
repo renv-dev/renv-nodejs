@@ -1,12 +1,17 @@
 import { RenvClient } from './types';
+type Constructor = {
+    logEnabled?: boolean;
+    isProduct?: boolean;
+    baseUrl?: string;
+};
 declare class Renv implements RenvClient {
     private readonly token;
     private readonly logEnabled;
+    private readonly isProduct;
     private projectId?;
     private branch;
-    private scopes;
     private data;
-    constructor(token: string, logEnabled?: boolean);
+    constructor(token: string, config?: Constructor);
     private config;
     private branches;
     private variables;
